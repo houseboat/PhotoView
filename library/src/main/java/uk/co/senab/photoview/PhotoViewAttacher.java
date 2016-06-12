@@ -16,12 +16,15 @@
 package uk.co.senab.photoview;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Matrix.ScaleToFit;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.v4.view.MotionEventCompat;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -56,6 +59,7 @@ public class PhotoViewAttacher implements IPhotoView, View.OnTouchListener,
     // release builds
     private static final boolean DEBUG = Log.isLoggable(LOG_TAG, Log.DEBUG);
 
+
     private Interpolator mInterpolator = new AccelerateDecelerateInterpolator();
     int ZOOM_DURATION = DEFAULT_ZOOM_DURATION;
 
@@ -72,6 +76,7 @@ public class PhotoViewAttacher implements IPhotoView, View.OnTouchListener,
 
     private boolean mAllowParentInterceptOnEdge = true;
     private boolean mBlockParentIntercept = false;
+
 
     private static void checkZoomLevels(float minZoom, float midZoom,
                                         float maxZoom) {
@@ -212,6 +217,15 @@ public class PhotoViewAttacher implements IPhotoView, View.OnTouchListener,
 
         // Finally, update the UI so that we're zoomable
         setZoomable(zoomable);
+    }
+
+    public Matrix[] getState() {
+        return new Matrix[]{
+          mBaseMatrix,
+          mDrawMatrix,
+          mSuppMatrix
+        };
+
     }
 
     @Override
@@ -711,6 +725,7 @@ public class PhotoViewAttacher implements IPhotoView, View.OnTouchListener,
         update();
     }
 
+
     public void update() {
         ImageView imageView = getImageView();
 
@@ -853,6 +868,7 @@ public class PhotoViewAttacher implements IPhotoView, View.OnTouchListener,
         }
 
         // Finally actually translate the matrix
+        Log.d(LOG_TAG,"deltaX="+deltaX+" deltaY="+deltaY);
         mSuppMatrix.postTranslate(deltaX, deltaY);
         return true;
     }
@@ -1015,6 +1031,25 @@ public class PhotoViewAttacher implements IPhotoView, View.OnTouchListener,
         if (null == imageView)
             return 0;
         return imageView.getHeight() - imageView.getPaddingTop() - imageView.getPaddingBottom();
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    public void scaleToFit(View otherView) {
+        float scale = 1.0f;
+
+
+        float scaleX = (float) otherView.getMeasuredWidth() / getImageView().getDrawable().getIntrinsicWidth();
+        float scaleY = (float) otherView.getMeasuredHeight() / getImageView().getDrawable().getIntrinsicHeight();
+        scale = Math.min(scaleX,scaleY);
+        if (scale<mMinScale) {
+            Log.w(LOG_TAG,"required scale is < MIN_SCALE. Will set MIN_SCALE to "+scale);
+            mMinScale=scale;
+        }
+        if (scale>mMaxScale) {
+            Log.w(LOG_TAG,"required scale is > MAX_SCALE. Will set MAX_SCALE to "+scale);
+            mMaxScale=scale;
+        }
+        setScale(scale);
     }
 
     /**

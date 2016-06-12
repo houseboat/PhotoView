@@ -15,6 +15,7 @@
  *******************************************************************************/
 package uk.co.senab.photoview;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -22,7 +23,9 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.GestureDetector;
+import android.view.View;
 import android.widget.ImageView;
 
 import uk.co.senab.photoview.PhotoViewAttacher.OnMatrixChangedListener;
@@ -34,6 +37,7 @@ public class PhotoView extends ImageView implements IPhotoView {
     private PhotoViewAttacher mAttacher;
 
     private ScaleType mPendingScaleType;
+
 
     public PhotoView(Context context) {
         this(context, null);
@@ -92,6 +96,8 @@ public class PhotoView extends ImageView implements IPhotoView {
     public Matrix getDisplayMatrix() {
         return mAttacher.getDisplayMatrix();
     }
+
+
 
     @Override
     public void getDisplayMatrix(Matrix matrix) {
@@ -315,5 +321,9 @@ public class PhotoView extends ImageView implements IPhotoView {
     protected void onAttachedToWindow() {
         init();
         super.onAttachedToWindow();
+    }
+
+    public void scaleToFit(View otherView) {
+        mAttacher.scaleToFit(otherView);
     }
 }
